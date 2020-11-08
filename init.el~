@@ -33,6 +33,21 @@
   (add-hook mode (lambda () (display-line-numbers-mode 0))))
 
 
+
+;;#########################
+;;                        #
+;;    KEYBINDING SETUP    #
+;;                        #
+;;#########################
+
+;; Make C-x p use the counsel-switch-buffer
+(global-set-key (kbd "C-x p") 'counsel-switch-buffer)
+
+;; Make ESC quit prompts
+(global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+
+
+
 ;;#########################
 ;;                        #
 ;;    PACKAGE MANAGING    #
@@ -47,7 +62,7 @@
 			 ("org" . "htps://orgmode.org/elpa/")
 			 ("elpa" . "https://elpa.gnu.org/packages/")))
 
-(package-initialize)
+
 (unless package-archive-contents
   (package-refresh-contents))
 
@@ -60,7 +75,6 @@
 
 (use-package command-log-mode) ;; shows what I press (basically)
 
-;; Ivy set-up
 (use-package ivy
   :diminish
   :bind (("C-s" . swiper)
@@ -79,36 +93,13 @@
   :config
   (ivy-mode 1))
 
-;; Ivy-rich
-(use-package ivy-rich
-  :init
-  (ivy-rich-mode 1))
-
-;; Ivy-enhanced version of common Emacs commands
-;; It is simply a kind of better default
-(use-package counsel
-  :bind (("M-x" . counsel-M-x)
-         ("C-x b" . counsel-ibuffer)
-         ("C-x C-f" . counsel-find-file)
-         :map minibuffer-local-map
-         ("C-r" . 'counsel-minibuffer-history)))
-
-;; Use helpful to get a better help mode in Emacs
-;; Kind of better default help mode
-(use-package helpful
-  :custom
-  (counsel-describe-function-function #'helpful-callable)
-  (counsel-describe-variable-function #'helpful-variable)
-  :bind
-  ([remap describe-function] . counsel-describe-function)
-  ([remap describe-command] . helpful-command)
-  ([remap describe-variable] . counsel-describe-variable)
-  ([remap describe-key] . helpful-key))
+(use-package counsel)
 
 (use-package doom-modeline
   :ensure t
   :init (doom-modeline-mode 1)
   :custom ((doom-modeline-height 40)))
+
 
 (use-package doom-themes
   :init (load-theme 'doom-dracula t))
@@ -131,38 +122,6 @@
 (unless (package-installed-p 'esup)
     (package-refresh-contents)
     (package-install 'esup))
-
-
-;;#########################
-;;                        #
-;;    KEYBINDING SETUP    #
-;;                        #
-;;#########################
-
-;; Make ESC quit prompts
-(global-set-key (kbd "<escape>") 'keyboard-escape-quit)
-
-;; Using general-define-key for a better (and cleaner) rebind
-(use-package general)
-
-(general-define-key
- "C-x p" 'counsel-switch-buffer    ; Make C-x p use the counsel-switch-buffer
- "C-s" 'counsel-grep-or-swiper)
-
-
-
-;;#########################
-;;                        #
-;;     EVIL-MODE SETUP    #
-;;                        #
-;;#########################
-
-;; So evil is cool :
-;; It introduces the "states" idea from VIM.
-;; I just need to figure out how to keep Emacs binding
-;; to make Evil-mode act like it only import the states
-;; from VIM and not all the VIM keybinding.
-
 
 ;;#########################
 ;;                        #
