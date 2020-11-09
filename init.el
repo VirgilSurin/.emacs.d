@@ -1,4 +1,6 @@
 
+
+
 ;; Redirect the custom-set-variables to custom.el
 (setq custom-file "~/.emacs.d/custom.el")
 (load custom-file t)
@@ -11,11 +13,18 @@
 
 (setq inhibit-startup-message t) ;  No startup message. Thanks but no thanks.
 
-(scroll-bar-mode -1) ; Disable scrollbar
-(tool-bar-mode -1)   ; Disable toolbar
-(tooltip-mode -1)    ; Disable tooltip
-(set-fringe-mode 10) ; Give some space
-(menu-bar-mode -1)   ; Disable the menu bar
+(scroll-bar-mode -1)  ; Disable scrollbar
+(tool-bar-mode -1)    ; Disable toolbar
+(tooltip-mode -1)     ; Disable tooltip
+(set-fringe-mode 10)  ; Give some space
+(menu-bar-mode -1)    ; Disable the menu bar
+
+;; Frame transparency - BETTER CLEAN UP YOUR DESKTOP (I see you Max)
+;; Comment this out in order to get rid of the effect or set the alpha's values to 100
+(set-frame-parameter (selected-frame) 'alpha '(95 . 95))
+(add-to-list 'default-frame-alist '(alpha . (95 . 95)))
+(set-frame-parameter (selected-frame) 'fullscreen 'maximized)
+(add-to-list 'default-frame-alist '(fullscreen . maximized))
 
 ;; Typo
 (set-face-attribute 'default nil :font "Fira Code Retina" :height 100) ; /!\ Needs to be installed on the computer FIRST
@@ -60,6 +69,12 @@
 
 (use-package command-log-mode) ;; shows what I press (basically)
 
+;;#########################
+;;                        #
+;;       IVY SETUP        #
+;;                        #
+;;#########################
+;; Adds a lot of nice things like swiper
 ;; Ivy set-up
 (use-package ivy
   :diminish
@@ -124,7 +139,8 @@
   (setq which-key-idle-delay 1))
 
 ;; First time this is loaded on a new machine, needs to run :
-;; M-x all-the-icons-install-fonts
+;; M-x all-the-icons-install-fonts to download the fonts
+;; THEN install them manually
 (use-package all-the-icons)
 
 ;; Benchmark Emacs start-up time :)
@@ -150,32 +166,11 @@
  "C-s" 'counsel-grep-or-swiper)
 
 
-
-;;#########################
-;;                        #
-;;     EVIL-MODE SETUP    #
-;;                        #
-;;#########################
-
-;; So evil is cool :
-;; It introduces the "states" idea from VIM.
-;; I just need to figure out how to keep Emacs binding
-;; to make Evil-mode act like it only import the states
-;; from VIM and not all the VIM keybinding.
-
-
 ;;#########################
 ;;                        #
 ;;    IDE/CODE SETUP      #
 ;;                        #
 ;;#########################
-
-;; Python set-up with elpy
-;; Not yet finished
-(use-package elpy
-  :ensure t
-  :init
-  (elpy-enable))
 
 ;; Ocaml
 "emacs-tuareg"
