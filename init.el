@@ -234,4 +234,4 @@
   :after org
   :hook (org-mode . org-bullets-mode)
   :custom
-  (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))q
+  (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
