@@ -24,12 +24,12 @@
 (set-frame-parameter (selected-frame) 'fullscreen 'maximized)
 (add-to-list 'default-frame-alist '(fullscreen . maximized))
 
-;; Custom function to toggle transparency mode
-(defun toggle-transparency (n)
-  "toggle transparency"
+;; Custom function to change transparency
+(defun change-transparency (n)
+  "change transparency to a given value between 0 and 100"
   (interactive "nValue: ")
-  (set-frame-parameter (selected-frame) 'alpha '(n . n))
-  (add-to-list 'default-frame-alist '(alpha . (n . n))))
+  (set-frame-parameter nil 'alpha `(,n . ,n))
+  (add-to-list 'default-frame-alist `(alpha . (,n . ,n))))
 
 
 
@@ -205,6 +205,44 @@
 (general-define-key
  "C-x p" 'counsel-switch-buffer    ; Make C-x p use the counsel-switch-buffer
  "C-s" 'counsel-grep-or-swiper)
+
+
+;;#########################
+;;                        #
+;;    PROJECTILE SETUP    #
+;;                        #
+;;#########################
+;; Projectile is useful in order to manage project
+;; Mainly installed because lsp-mode uses it for project management
+
+(use-package projectile
+  :diminish projectile-mode
+  :config (projectile-mode)
+  :custom ((projectile-completion-system 'ivy))
+  :bind-keymap
+  ("C-c p" . projectile-command-map)
+  :init
+  ;; NOTE: Set this to the folder where you keep your Git repos!
+  (when (file-directory-p "D:\Projects")
+    (setq projectile-project-search-path '("D:\Projects")))
+  (setq projectile-switch-project-action #'projectile-dired))
+
+(use-package counsel-projectile
+  :config (counsel-projectile-mode))
+
+
+;;#########################
+;;                        #
+;;       MAGIT SETUP      #
+;;                        #
+;;#########################
+;; It's a kind of magit !
+;; Nice git integration to Emacs
+
+(use-package magit
+  :commands (magit-status magit-get-current-branch)
+  :custom
+  (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
 
 
 ;;#########################
