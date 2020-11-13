@@ -21,10 +21,17 @@
 
 ;; Frame transparency - BETTER CLEAN UP YOUR DESKTOP (I see you Max)
 ;; Comment this out in order to get rid of the effect or set the alpha's values to 100
-(set-frame-parameter (selected-frame) 'alpha '(95 . 95))
-(add-to-list 'default-frame-alist '(alpha . (95 . 95)))
 (set-frame-parameter (selected-frame) 'fullscreen 'maximized)
 (add-to-list 'default-frame-alist '(fullscreen . maximized))
+
+;; Custom function to toggle transparency mode
+(defun toggle-transparency (n)
+  "toggle transparency"
+  (interactive "nValue: ")
+  (set-frame-parameter (selected-frame) 'alpha '(n . n))
+  (add-to-list 'default-frame-alist '(alpha . (n . n))))
+
+
 
 ;; Typo
 (set-face-attribute 'default nil :font "Fira Code Retina" :height 100) ; /!\ Needs to be installed on the computer FIRST
@@ -53,7 +60,7 @@
 
 (setq package-archives '(("melpa" . "https://melpa.org/packages/")
 			 ("melpa-stable" . "https://stable.melpa.org/packages/")
-			 ("org" . "htps://orgmode.org/elpa/")
+			 ("org" . "https://orgmode.org/elpa/")
 			 ("elpa" . "https://elpa.gnu.org/packages/")))
 
 (package-initialize)
@@ -151,6 +158,40 @@
 
 ;;#########################
 ;;                        #
+;;     GOD-MODE SETUP     #
+;;                        #
+;;#########################
+;; Use god-mode in order to reduce the usage of ctrl key.
+;; Now Emacs assumes a C key before each key pressed :
+;; f = C-f
+;; x s = C-x C-s
+;; x SPC s = C-x s
+;; g = M-
+;; G = C-M-
+;;(use-package god-mode
+;;  :config (setq god-mode-enable-function-key-translation nil)) ; Disable god-mode for function key
+;;(god-mode)
+;; ESC key to toggle god-mode
+;;(global-set-key (kbd "<escape>") #'god-local-mode)
+
+;; Ensure that no buffers are skipped
+;;(setq god-exempt-major-modes nil)
+;;(setq god-exempt-predicates nil)
+
+;; Enable a cursor style that shows if god-mode is on
+;;(defun my-god-mode-update-cursor ()
+;;  (setq cursor-type (if (or god-local-mode buffer-read-only)
+;;                        'box
+;;                      'bar)))
+
+;;(add-hook 'god-mode-enabled-hook #'my-god-mode-update-cursor)
+;;(add-hook 'god-mode-disabled-hook #'my-god-mode-update-cursor)
+
+
+
+
+;;#########################
+;;                        #
 ;;    KEYBINDING SETUP    #
 ;;                        #
 ;;#########################
@@ -173,4 +214,24 @@
 ;;#########################
 
 ;; Ocaml
-"emacs-tuareg"
+(use-package tuareg)
+
+
+
+;;#########################
+;;                        #
+;;    ORG-MODE SETUP      #
+;;                        #
+;;#########################
+
+(use-package org
+  :hook (org-mode . efs/org-mode-setup)
+  :config
+  (setq org-ellipsis " ▾")
+  (efs/org-font-setup))
+
+(use-package org-bullets
+  :after org
+  :hook (org-mode . org-bullets-mode)
+  :custom
+  (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))q
