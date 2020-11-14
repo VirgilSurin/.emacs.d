@@ -238,6 +238,7 @@
 ;;#########################
 ;; It's a kind of magit !
 ;; Nice git integration to Emacs
+;; hit C-x g to access Magit interface
 
 (use-package magit
   :commands (magit-status magit-get-current-branch)
