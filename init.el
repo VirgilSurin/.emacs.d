@@ -446,15 +446,41 @@
 (add-hook 'java-mode-hook #'lsp)
 
 ;; Python setup
-(use-package jedi)
-(require 'jedi)
-(setq jedi:server-args
-      '("--sys-path" "/usr/lib/python2.7/"
-        "--sys-path" "/usr/lib/python2.7/site-packages"))
+(setq python-shell-interpreter "C:\\Users\\lefan\\AppData\\Local\\Programs\\Python\\Python37-32\\python.exe")
 
-(jedi:ac-setup)
-(jedi:complete)
+(use-package lsp-jedi)
+(use-package elpy)
 
+
+(defun execute-python-program ()
+  "Custom command to run python program
+ an inferior python process must be running"
+  (interactive)
+  (python-shell-send-file (buffer-name))
+  (switch-to-buffer-other-window "*Python*"))
+
+
+(add-hook 'python-mode-hook
+	  (define-key global-map "\C-c\C-c" 'execute-python-program)
+	  (jedi:complete)
+	  (elpy-enable))
+
+;; C setup
+(defun execute-c-program ()
+  "Custom command to compile and run C program"
+  (interactive)
+  (defvar command)
+  (setq command (concat "gcc " (buffer-name) " && a"))
+  (async-shell-command command))
+
+(add-hook 'c-mode-hook
+    (define-key c-mode-map "\C-c\C-c" 'execute-c-program))
+
+
+;; LaTeX setup
+(use-package latex-preview-pane)
+(latex-preview-pane-enable)
+(use-package latex-math-preview)
 
 
 ;;#########################
