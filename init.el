@@ -32,6 +32,13 @@
 ;; Typo
 (set-face-attribute 'default nil :font "Fira Code Retina" :height 100) ; /!\ Needs to be installed on the computer FIRST
 
+;; Set the fixed pitch face
+(set-face-attribute 'fixed-pitch nil :font "Fira Code Retina" :height 260)
+
+;; Set the variable pitch face
+(set-face-attribute 'variable-pitch nil :font "Cantarell" :height 295 :weight 'regular)
+
+
 ;; enable line highlight, line number and column number
 (global-hl-line-mode t)                ; Enable line number at the left
 (global-display-line-numbers-mode t)   ; Enable display of line number (at the bottom)
@@ -71,6 +78,7 @@
 (setq use-package-always-ensure t)
 
 (use-package command-log-mode) ;; shows what I press (basically)
+
 
 ;;#########################
 ;;                        #
@@ -362,7 +370,6 @@
 (use-package general)
 
 (general-define-key
- "C-x p" 'counsel-switch-buffer    ; Make C-x p use the counsel-switch-buffer
  "C-s" 'counsel-grep-or-swiper)
 
 
@@ -405,6 +412,11 @@
   (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
 
 
+
+;; Activity Watch ! To track my emacs time !
+(use-package activity-watch-mode)
+(global-activity-watch-mode)
+
 ;;#########################
 ;;                        #
 ;;    IDE/CODE SETUP      #
@@ -416,7 +428,8 @@
 
 (use-package lsp-mode
     :hook (;; replace XXX-mode with concrete major-mode(e. g. python-mode)
-            ;;(XXX-mode . lsp)
+           ;;(XXX-mode . lsp)
+	   (python-mode . lsp)
             ;; if you want which-key integration
             (lsp-mode . lsp-enable-which-key-integration))
     :commands lsp)
@@ -447,23 +460,10 @@
 
 ;; Python setup
 (setq python-shell-interpreter "C:\\Users\\lefan\\AppData\\Local\\Programs\\Python\\Python37-32\\python.exe")
-
-(use-package lsp-jedi)
 (use-package elpy)
+(add-hook 'python-mode 'elpy-enable)
 
-
-(defun execute-python-program ()
-  "Custom command to run python program
- an inferior python process must be running"
-  (interactive)
-  (python-shell-send-file (buffer-name))
-  (switch-to-buffer-other-window "*Python*"))
-
-
-(add-hook 'python-mode-hook
-	  (define-key global-map "\C-c\C-c" 'execute-python-program)
-	  (jedi:complete)
-	  (elpy-enable))
+(define-key python-mode-map ["\C-c\C-c"] 'python-shell-send-buffer)
 
 ;; C setup
 (defun execute-c-program ()
@@ -478,9 +478,112 @@
 
 
 ;; LaTeX setup
-(use-package latex-preview-pane)
-(latex-preview-pane-enable)
-(use-package latex-math-preview)
+
+(use-package pdf-tools
+  :magic ("%PDF" . pdf-view-mode)
+  :config
+  (pdf-tools-install)
+  (setq-default pdf-view-display-size 'fit-page)
+  ;; (with-eval-after-load 'pdf-view
+  ;;   (require 'pdf-continuous-scroll-mode))
+  )
+
+(use-package pdf-view-restore
+  :after pdf-tools
+  :config
+  (define-key pdf-view-mode-map (kbd "C-s") 'isearch-forward)
+  (add-hook 'pdf-view-mode-hook 'pdf-view-restore-mode))
+
+(use-package latex
+  :ensure auctex
+  :defer t
+  :mode
+  ("\\.tex\\'" . latex-mode)
+  :bind (:map LaTeX-mode-map
+              ("C-<f7>" . LaTeX-fill-region)
+              ;; ("<f9>" . TeX-command-save-buffer-and-run-all))
+              ("C-SPC" . TeX-command-save-buffer-and-run-all))
+  :init
+  (defun TeX-command-save-buffer-and-run-all ()
+    "Save the buffer and run TeX-command-run-all"
+    (interactive)
+    (let (TeX-save-query) (TeX-save-document (TeX-master-file)))
+    (TeX-command-run-all nil))
+  ;; latexmk
+  (use-package auctex-latexmk)
+  ;; company
+  (use-package company-math)
+  (use-package company-auctex)
+  ;; local configuration for TeX modes
+  ;;https://github.com/vspinu/company-math
+  ;;https://github.com/alexeyr/company-auctex/
+  (defun asd-latex-mode-setup ()
+    (setq-local company-backends
+                (append '(
+                          (company-math-symbols-unicode company-math-symbols-latex company-latex-commands)
+                          (company-auctex-macros company-auctex-symbols company-auctex-environments)
+                          company-ispell
+                          company-auctex-bibs
+                          company-auctex-labels
+                          )
+                        company-backends)))
+  
+  (defun asd-latex-mode-visual-fill ()
+    (setq visual-fill-column-width 80)
+    ;; (setq visual-fill-column-mode 1)
+    ;; (setq visual-fill-column-center-text t)
+    ;; (auto-revert-mode 1)
+    ;; (auto-fill-mode 0)
+    )
+  :config
+  (setq TeX-auto-save t)
+  (setq TeX-parse-self t)
+  (setq-default TeX-master nil)
+  (setq TeX-save-query nil)
+  (setq TeX-PDF-mode t)
+  ;; (turn-on-auto-fill)
+
+  ;; (add-hook 'LaTeX-mode-hook 'visual-line-mode)
+  (add-hook 'LaTeX-mode-hook 'company-mode)
+  (add-hook 'LaTeX-mode-hook 'flyspell-mode)
+  (add-hook 'LaTeX-mode-hook 'LaTeX-math-mode)
+
+  (add-hook 'LaTeX-mode-hook 'turn-on-reftex)
+  (setq reftex-plug-into-AUCTeX t)
+
+  ;; syncing pdf and tex file
+  (TeX-source-correlate-mode 1)
+
+  ;; pdftools
+  ;; https://emacs.stackexchange.com/questions/21755/use-pdfview-as-default-auctex-pdf-viewer#21764
+  (setq TeX-view-program-selection '((output-pdf "PDF Tools"))
+        TeX-view-program-list '(("PDF Tools" TeX-pdf-tools-sync-view))
+        TeX-source-correlate-start-server t) ;; not sure if last line is neccessary
+  ;; to have the buffer refresh after compilation,
+  ;; very important so that PDFView refesh itself after comilation
+  (add-hook 'TeX-after-compilation-finished-functions
+            #'TeX-revert-document-buffer)
+
+  ;; latexmk
+  (require 'auctex-latexmk)
+  (auctex-latexmk-setup)
+  (setq auctex-latexmk-inherit-TeX-PDF-mode t)
+  ;;https://github.com/tom-tan/auctex-latexmk/issues/33
+  ;; overide LaTeX command
+  ;; currently not working
+  ;; (setq TeX-command-list
+  ;;     (cons
+  ;;     `("LaTeX" . ,(cdr (assoc "LaTexMk" TeX-command-list)))
+  ;;     TeX-command-list))
+
+  ;; company setting
+  (add-hook 'LaTeX-mode-hook 'asd-latex-mode-setup)
+  (add-hook 'LaTeX-mode-hook 'asd-latex-mode-visual-fill)
+  (add-hook 'LaTeX-mode-hook 'visual-fill-column-mode)
+  ;; (add-hook 'LaTeX-mode-hook 'lasy-mode)
+  ;; (add-hook 'LaTeX-mode-hook 'turn-on-auto-fill)
+  )
+
 
 
 ;;#########################
@@ -489,14 +592,42 @@
 ;;                        #
 ;;#########################
 
+(defun ves/org-mode-setup () ;; ves stands for Virgil's Emacs Setup
+  (org-indent-mode)
+  (variable-pitch-mode 1)
+  (visual-line-mode 1))
+
 (use-package org
-  :hook (org-mode . efs/org-mode-setup)
+  :hook (org-mode . ves/org-mode-setup)
   :config
-  (setq org-ellipsis " ▾")
-  (efs/org-font-setup))
+  (setq org-ellipsis " ▾"))
 
 (use-package org-bullets
   :after org
   :hook (org-mode . org-bullets-mode)
   :custom
   (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
+
+;; Set faces for heading levels
+;; (dolist (face '((org-level-1 . 1.15)
+;;                 (org-level-2 . 1.1)
+;;                 (org-level-3 . 1.05)
+;;                 (org-level-4 . 1.0)
+;;                 (org-level-5 . 1.1)
+;;                 (org-level-6 . 1.1)
+;;                 (org-level-7 . 1.1)
+;;                 (org-level-8 . 1.1)))
+;;     (set-face-attribute (car face) nil :font "Cantarell" :weight 'regular :height (cdr face)))
+
+;; Replace list hyphen with dot
+(font-lock-add-keywords 'org-mode
+                        '(("^ *\\([-]\\) "
+                           (0 (prog1 () (compose-region (match-beginning 1) (match-end 1) "•"))))))
+
+(defun ves/org-mode-visual-fill ()
+  (setq visual-fill-column-width 150
+	visual-fill-column-center-text t)
+  (visual-fill-column-mode 1))
+
+(use-package visual-fill-column
+  :hook (org-mode . ves/org-mode-visual-fill))
