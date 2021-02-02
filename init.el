@@ -15,6 +15,9 @@
 (tooltip-mode -1)     ; Disable tooltip
 (set-fringe-mode 10)  ; Give some space
 (menu-bar-mode -1)    ; Disable the menu bar
+(display-time)        ; Display time in active modline (AM/PM)
+(setq-default cursor-type 'bar)
+
 
 ;; Frame transparency - BETTER CLEAN UP YOUR DESKTOP (I see you Max)
 ;; Comment this out in order to get rid of the effect or set the alpha's values to 100
@@ -79,6 +82,45 @@
 
 (use-package command-log-mode) ;; shows what I press (basically)
 
+
+;;#########################
+;;                        #
+;;       QOL SETUP        #
+;;                        #
+;;#########################
+;;Ace-jump
+;;https://github.com/winterTTr/ace-jump-mode
+;;
+;; ace jump mode major function
+;; 
+(add-to-list 'load-path "/full/path/where/ace-jump-mode.el/in/")
+(autoload
+  'ace-jump-mode
+  "ace-jump-mode"
+  "Emacs quick move minor mode"
+  t)
+;; you can select the key you prefer to
+(define-key global-map (kbd "C-c SPC") 'ace-jump-mode)
+;; 
+;; enable a more powerful jump back function from ace jump mode
+;;
+(autoload
+  'ace-jump-mode-pop-mark
+  "ace-jump-mode"
+  "Ace jump back:-)"
+  t)
+(eval-after-load "ace-jump-mode"
+  '(ace-jump-mode-enable-mark-sync))
+(define-key global-map (kbd "C-x SPC") 'ace-jump-mode-pop-mark)
+
+;;Cheatsheet
+;;https://github.com/darksmile/cheatsheet
+(use-package cheatsheet)
+(cheatsheet-add :group 'Common
+                :key "C-x C-c"
+                :description "leave Emacs.")
+
+;;https://github.com/tarsius/keycast
 
 ;;#########################
 ;;                        #
@@ -179,8 +221,7 @@
     (define-key winum-keymap (kbd "M-0") #'treemacs-select-window))
   :config
   (progn
-    (setq treemacs-collapse-dirs                 (if treemacs-python-executable 3 0)
-          treemacs-deferred-git-apply-delay      0.5
+    (setq treemacs-deferred-git-apply-delay      0.5
           treemacs-directory-name-transformer    #'identity
           treemacs-display-in-side-window        t
           treemacs-eldoc-display                 t
@@ -253,8 +294,7 @@
     (define-key winum-keymap (kbd "M-0") #'treemacs-select-window))
   :config
   (progn
-    (setq treemacs-collapse-dirs                 (if treemacs-python-executable 3 0)
-          treemacs-deferred-git-apply-delay      0.5
+    (setq treemacs-deferred-git-apply-delay      0.5
           treemacs-directory-name-transformer    #'identity
           treemacs-display-in-side-window        t
           treemacs-eldoc-display                 t
@@ -356,7 +396,6 @@
 
 
 
-
 ;;#########################
 ;;                        #
 ;;    KEYBINDING SETUP    #
@@ -374,11 +413,11 @@
 
 
 ;; Windows management
-;; Use C-leftArrow etc to move between windows
-(global-set-key (kbd "<C-right>") 'windmove-right)
-(global-set-key (kbd "<C-left>") 'windmove-left)
-(global-set-key (kbd "<C-up>") 'windmove-up)
-(global-set-key (kbd "<C-down>") 'windmove-down)
+;; Use M-leftArrow etc to move between windows
+(global-set-key (kbd "<M-right>") 'windmove-right)
+(global-set-key (kbd "<M-left>") 'windmove-left)
+(global-set-key (kbd "<M-up>") 'windmove-up)
+(global-set-key (kbd "<M-down>") 'windmove-down)
 
 ;; winner mode !!
 (winner-mode) ;;undo = C-c-left , redo = C-c-right
@@ -431,64 +470,93 @@
 (use-package activity-watch-mode)
 (global-activity-watch-mode)
 
+
+
 ;;#########################
 ;;                        #
 ;;    IDE/CODE SETUP      #
 ;;                        #
 ;;#########################
+
+(setq-default indent-tabs-mode nil)
+(setq tab-width 4)
+
+;;Quickrun to run & compile everything !
+(use-package quickrun)
+(global-set-key (kbd "C-c C-r") 'quickrun-shell)
+
+
 ;; lsp-mode
 ;; set prefix for lsp-command-keymap
 (setq lsp-keymap-prefix "C-c l")
 
 (use-package lsp-mode
-    :hook (;; replace XXX-mode with concrete major-mode(e. g. python-mode)
-           ;;(XXX-mode . lsp)
-	   (python-mode . lsp)
-            ;; if you want which-key integration
-            (lsp-mode . lsp-enable-which-key-integration))
-    :commands lsp)
+  :hook (;; replace XXX-mode with concrete major-mode(e. g. python-mode)
+         ;;(XXX-mode . lsp)
+	 (java-mode . lsp)
+	 (python-mode . lsp)
+         ;; if you want which-key integration
+         (lsp-mode . lsp-enable-which-key-integration))
+  :commands lsp)
+(global-set-key (kbd "C-c C-v") 'lsp-execute-code-action)
+
 
 ;; Automatically add ending brackets and braces
 (electric-pair-mode 1)
 
 (use-package flycheck)
 
-(use-package lsp-ui :commands lsp-ui-mode)
+(use-package lsp-ui)
+(lsp-ui-peek-enable t)
+(setq lsp-completion-provider :capf)
+(setq lsp-completion-show-detail t)
+(setq lsp-completion-show-kind t)
+
 
 (use-package lsp-ivy :commands lsp-ivy-workspace-symbol)
 
 (use-package lsp-treemacs :commands lsp-treemacs-errors-list)
 
-(use-package yasnippet :config (yas-global-mode))
+;;(use-package yasnippet :config (yas-global-mode))
 
 (use-package company)
+(global-company-mode t)
+(global-set-key (kbd "C-c C-b") 'company-complete)
 (add-hook 'after-init-hook 'global-company-mode)
 
-
 (use-package dap-mode)
-;; (use-package dap-LANGUAGE) to load the dap adapter for your language
 
 ;; Java setup
 (use-package lsp-java)
+(require 'dap-java)
 (add-hook 'java-mode-hook #'lsp)
+(use-package gradle-mode)
+(defun build-and-run()
+  "Build and run a gradle project"
+  (interactive)
+  (gradle-run "build run"))
+(global-set-key (kbd "C-c C-p") 'build-and-run)
+
 
 ;; Python setup
 (setq python-shell-interpreter "C:\\Users\\lefan\\AppData\\Local\\Programs\\Python\\Python37-32\\python.exe")
 (use-package elpy)
+(setq elpy-rpc-backend "jedi")
 (add-hook 'python-mode 'elpy-enable)
 
-(define-key python-mode-map ["\C-c\C-c"] 'python-shell-send-buffer)
-
 ;; C setup
+;; Language server : ccls
+(use-package ccls
+  :hook ((c-mode c++-mode objc-mode cuda-mode) .
+         (lambda () (require 'ccls) (lsp))))
+
 (defun execute-c-program ()
   "Custom command to compile and run C program"
   (interactive)
   (defvar command)
   (setq command (concat "gcc " (buffer-name) " && a"))
-  (async-shell-command command))
+  (shell-command command))
 
-(add-hook 'c-mode-hook
-    (define-key c-mode-map "\C-c\C-c" 'execute-c-program))
 
 
 ;; LaTeX setup
@@ -515,7 +583,7 @@
   ("\\.tex\\'" . latex-mode)
   :bind (:map LaTeX-mode-map
               ("C-<f7>" . LaTeX-fill-region)
-              ;; ("<f9>" . TeX-command-save-buffer-and-run-all))
+              ("<f9>" . TeX-command-save-buffer-and-run-all))
               ("C-SPC" . TeX-command-save-buffer-and-run-all))
   :init
   (defun TeX-command-save-buffer-and-run-all ()
@@ -566,7 +634,7 @@
   (setq reftex-plug-into-AUCTeX t)
 
   ;; syncing pdf and tex file
-  (TeX-source-correlate-mode 1)
+  (TeX- source-correlate-mode 1)
 
   ;; pdftools
   ;; https://emacs.stackexchange.com/questions/21755/use-pdfview-as-default-auctex-pdf-viewer#21764
@@ -596,7 +664,7 @@
   (add-hook 'LaTeX-mode-hook 'visual-fill-column-mode)
   ;; (add-hook 'LaTeX-mode-hook 'lasy-mode)
   ;; (add-hook 'LaTeX-mode-hook 'turn-on-auto-fill)
-  )
+)
 
 
 
