@@ -136,6 +136,9 @@ This command does not push erased text to kill-ring."
 (use-package dimmer)
 (dimmer-mode t)
 
+;; This package allows to go ignore comment when going to end-of-line
+(use-package mwim)
+
 ;; A simple Emacs cheatsheet, may be useful to remember some kb
 (use-package cheatsheet)
 (cheatsheet-add :group 'Common
@@ -207,6 +210,8 @@ This command does not push erased text to kill-ring."
 
 ;; C- key
 (general-define-key
+ "C-e" 'mwim-end
+ "C-a" 'mwim-beginning
  "C-s" 'counsel-grep-or-swiper
  "C-c /" 'comment-dwim
  "C-x k" 'kill-this-buffer
@@ -493,6 +498,8 @@ This command does not push erased text to kill-ring."
 
 (use-package lsp-ui)
 (lsp-ui-peek-enable t)
+(lsp-ui-doc-enable t)
+
 (setq lsp-completion-provider :capf)
 (setq lsp-completion-show-detail t)
 (setq lsp-completion-show-kind t)
