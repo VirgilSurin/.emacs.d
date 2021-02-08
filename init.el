@@ -212,6 +212,7 @@ This command does not push erased text to kill-ring."
 (unbind-key "C-K")
 (unbind-key "M-d")
 (unbind-key "M-<backspace>")
+(unbind-key "C-<backspace>")
 
 ;; C- key
 (general-define-key
@@ -232,7 +233,8 @@ This command does not push erased text to kill-ring."
  "<M-up>" 'windmove-up
  "<M-down>" 'windmove-down
  "M-d" 'my-delete-word
- "<M-backspace>" 'my-backward-delete-word)
+ "M-<backspace>" 'my-backward-delete-word
+ "C-<backspace>" 'my-backward-delete-word)
 
 ;; NOTE : there are only basic/generic keybinding listed here.
 ;;        Other more specific keybinding may be found under other sections.
