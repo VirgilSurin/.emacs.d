@@ -283,6 +283,8 @@ This command does not push erased text to kill-ring."
       treemacs-width                   35
       treemacs-position                'left)
 
+(setq treemacs-python-executable "C:\\Users\\lefan\\AppData\\Local\\Programs\\Python\\Python37-32\\python.exe")
+
 (treemacs-follow-mode t)
 (treemacs-icons-dired-mode t)
 
