@@ -1,6 +1,9 @@
-;; Redirect the custom-set-variables to custom.el
+;; Redirect the custom-set-variables to custom.els
 (setq custom-file "~/.emacs.d/custom.el")
 (load custom-file t)
+;; Create a variable to indicate where emacs's configuration is installed
+(setq EMACS_DIR "~/.emacs.d/")
+
 
 ;;#########################
 ;;                        #
@@ -63,6 +66,18 @@
 (prefer-coding-system 'utf-8)
 (setq default-process-coding-system '(utf-8-unix . utf-8-unix))
 
+;; Move all the backup files to specific cache directory
+;; This way you won't have annoying temporary files starting with ~(tilde) in each directory
+;; Following setting will move temporary files to specific folders inside cache directory in EMACS_DIR
+
+(setq user-cache-directory (concat EMACS_DIR "cache"))
+(setq backup-directory-alist `(("." . ,(expand-file-name "backups" user-cache-directory)))
+      url-history-file (expand-file-name "url/history" user-cache-directory)
+      auto-save-list-file-prefix (expand-file-name "auto-save-list/.saves-" user-cache-directory)
+      projectile-known-projects-file (expand-file-name "projectile-bookmarks.eld" user-cache-directory))
+
+
+
 ;; Typo - go to https://www.jetbrains.com/lp/mono/#how-to-install to get it !
 (set-face-attribute 'default nil :font "JetBrains Mono-12.0" :height 100)
 
@@ -78,12 +93,15 @@
 		eshell-mode-hook))
   (add-hook mode (lambda () (display-line-numbers-mode 0))))
 
+
+
 ;; Custom function to change transparency
 (defun change-transparency (n)
   "change transparency to a given value between 0 and 100"
   (interactive "nValue: ")
   (set-frame-parameter nil 'alpha `(,n . ,n))
   (add-to-list 'default-frame-alist `(alpha . (,n . ,n))))
+
 
 ;; credit goes to : http://ergoemacs.org/emacs/emacs_kill-ring.html
 (defun my-delete-word (arg)
@@ -132,6 +150,20 @@ This command does not push erased text to kill-ring."
 ;;    QOL Packages
 ;;---===>>><<<===---
 
+
+;; This will help eliminate weird escape sequences during compilation of projects.
+;; Source : https://github.com/neppramod/java_emacs/blob/master/emacs-configuration.org
+(defun vs/ansi-colorize-buffer ()
+(let ((buffer-read-only nil))
+(ansi-color-apply-on-region (point-min) (point-max))))
+
+(use-package ansi-color
+:ensure t
+:config
+(add-hook 'compilation-filter-hook 'vs/ansi-colorize-buffer)
+)
+
+
 ;;highlight active window !
 (use-package dimmer)
 (dimmer-mode t)
@@ -139,12 +171,42 @@ This command does not push erased text to kill-ring."
 ;; This package allows to go ignore comment when going to end-of-line
 (use-package mwim)
 
-;; A simple Emacs cheatsheet, may be useful to remember some kb
+;; A simple Emacs cheatsheet, may be useful to remember some kbd
 (use-package cheatsheet)
-(cheatsheet-add :group 'Common
-                :key "C-x C-c"
-                :description "leave Emacs.")
-
+(cheatsheet-add :group 'Org-mode
+                :key "Shit-Tab"
+                :description "Cycle show/hide all header")
+(cheatsheet-add :group 'Org-mode
+                :key "C-return"
+                :description "Creates a new heading at the same level under current heading")
+(cheatsheet-add :group 'Org-mode
+                :key "C-M-<arrow-key>"
+                :description "Move header") ; org-metaup function
+(cheatsheet-add :group 'Org-mode
+                :key "C-c C-l"
+                :description "Insert link on selected text, if no text selected ask for text")
+(cheatsheet-add :group 'Org-mode
+                :key "C-c C-o"
+                :description "org-open-at-point opens link, footnote and so")
+(cheatsheet-add :group 'Org-mode-tables
+                :key "<tab>"
+                :description "Reformat table, cycle through cell")
+(cheatsheet-add :group 'Org-mode
+                :key "S-<tab>"
+                :description "The exact opposite of <tab>")
+(cheatsheet-add :group 'Org-mode-list
+                :key "M-<enter>"
+                :description "Insert new item")
+(cheatsheet-add :group 'Org-mode-list
+                :key "C-c C-x C-b"
+                :description "Toggle checkbox")
+(cheatsheet-add :group 'Org-mode
+                :key "C-c C-t"
+                :description "Change header state (TODO/DONE/etc...)")
+(cheatsheet-add :group 'Org-mode
+                :key "S-<arrow-key>"
+                :description "Change header state too")
+                
 ;; winner mode !!
 (winner-mode) ;;undo = C-c-left , redo = C-c-right
 
@@ -201,18 +263,42 @@ This command does not push erased text to kill-ring."
   :config
   (setq which-key-idle-delay 1))
 
+
 ;;---===>>><<<===---
 ;;    Keybindings
 ;;---===>>><<<===---
 
+;; Using key-cord for non-prefixe command binding
+(use-package use-package-chords
+:ensure t
+:init 
+:config (key-chord-mode 1)
+(setq key-chord-two-keys-delay 0.4)
+(setq key-chord-one-key-delay 0.5) ; default 0.2
+)
+
 ;; Using general-define-key for a better (and cleaner) rebind
 (use-package general)
 
-(unbind-key "C-k")
-(unbind-key "C-K")
-(unbind-key "M-d")
-(unbind-key "M-<backspace>")
-(unbind-key "C-<backspace>")
+
+(general-unbind
+  "C-z"
+  "C-k"
+  "C-K"
+  "M-d"
+  "M-<backspace>"
+  "C-<backspace>"
+  ;; "M-f"           ; I want to replace (forward-word) by (forward-symbol)
+  ;; "M-b"           ; I want to replace (backward-word) by (backward-symbol)
+  )
+
+;; Avy for better navigation!
+(use-package avy 
+:ensure t
+:chords
+("jc" . avy-goto-char)
+("jz" . avy-goto-word-1)
+("jl" . avy-goto-line))
 
 ;; C- key
 (general-define-key
@@ -223,7 +309,8 @@ This command does not push erased text to kill-ring."
  "C-x k" 'kill-this-buffer
  "C-x K" 'kill-buffer
  "C-k" 'my-delete-line
- "C-K" 'my-delete-line-backward)
+ "C-K" 'my-delete-line-backward
+ )
 
 ;; M- key
 (general-define-key
@@ -234,7 +321,8 @@ This command does not push erased text to kill-ring."
  "<M-down>" 'windmove-down
  "M-d" 'my-delete-word
  "M-<backspace>" 'my-backward-delete-word
- "C-<backspace>" 'my-backward-delete-word)
+ "C-<backspace>" 'my-backward-delete-word
+ )
 
 ;; NOTE : there are only basic/generic keybinding listed here.
 ;;        Other more specific keybinding may be found under other sections.
@@ -257,7 +345,11 @@ This command does not push erased text to kill-ring."
 ;; use M-x counsel-load-theme RET to interactively switch theme
 (use-package doom-themes)
 (use-package monokai-theme)
-(load-theme 'doom-molokai t)
+(use-package kaolin-themes)
+;; (load-theme 'doom-molokai t)
+;; (load-theme 'doom-one t)
+;; (load-theme 'spacemacs-dark t)
+(load-theme 'atom-one-dark t)
 (setq doom-molokai-brighter-modeline t)
 (setq doom-molokai-brighter-comments t)
 (setq doom-molokai-comment-bg t)
@@ -336,6 +428,11 @@ This command does not push erased text to kill-ring."
 ;;    IDE Utilities
 ;;---===>>><<<===---
 
+;; Package to help expand/collapse region
+(use-package expand-region)
+(general-define-key
+ "C-+" 'expand-region)
+
 ;; Allow for a larger memory usage to read subprocess
 (setq read-process-output-max (* 1024 1024)) ; 1mb
 
@@ -343,11 +440,19 @@ This command does not push erased text to kill-ring."
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))
 
+;; Show matching brackets and braces
+(show-paren-mode 1)
+
 ;; Automatically add ending brackets and braces
 (electric-pair-mode 1)
 
 ;;Quickrun to run & compile everything !
 (use-package quickrun)
+
+;; Allow to manage TODO, FIXME and so keywords
+(use-package fixmee)
+(use-package button-lock)
+(global-fixmee-mode 1)
 
 
 ;; allow to fold some part of code
@@ -364,11 +469,24 @@ This command does not push erased text to kill-ring."
 (use-package lsp-mode
   :hook (;; replace XXX-mode with concrete major-mode(e. g. python-mode)
          ;;(XXX-mode . lsp)
-	 (java-mode . lsp)
-	 (python-mode . lsp)
+	 (java-mode . #'lsp-deferred)
+	 (python-mode . #'lsp-deferred)
          ;; if you want which-key integration
          (lsp-mode . lsp-enable-which-key-integration))
-  :commands lsp)
+  :commands lsp
+  :init (setq
+         lsp-keymap-prefix "C-c l"
+         lsp-enable-file-watchers nil
+         read-process-output-max(* 1024 1024)
+         lsp-completion-provider :capf
+         lsp-idle-delay 0.500
+         ;; lsp-log-io nil
+         lsp-print-performance t)
+  :config 
+    (setq lsp-intelephense-multi-root nil) ; don't scan unnecessary projects
+    (with-eval-after-load 'lsp-intelephense
+    (setf (lsp--client-multi-root (gethash 'iph lsp-clients)) nil))
+	(define-key lsp-mode-map (kbd "C-c l") lsp-command-map))
 
 (use-package lsp-ui)
 (lsp-ui-peek-enable t)
@@ -381,6 +499,11 @@ This command does not push erased text to kill-ring."
 (use-package lsp-ivy :commands lsp-ivy-workspace-symbol)
 
 (use-package lsp-treemacs :commands lsp-treemacs-errors-list)
+
+;; The default is 800 kilobytes.  Measured in bytes.
+
+(setq gc-cons-threshold 100000000) ;; 100 MB
+(setq read-process-output-max (* 1 1024 1024)) ;; 1 MB
 
 ;;---===>>><<<===---
 ;;    Syntax checking
@@ -412,7 +535,19 @@ This command does not push erased text to kill-ring."
 ;;     Debugger
 ;;---===>>><<<===---
 
-(use-package dap-mode)
+(use-package dap-mode
+  :ensure t
+  :after (lsp-mode)
+  :functions dap-hydra/nil
+  :config
+  (require 'dap-java)
+  :bind (:map lsp-mode-map
+         ("<f5>" . dap-debug)
+         ("M-<f5>" . dap-hydra))
+  :hook ((dap-mode . dap-ui-mode)
+    (dap-session-created . (lambda (&_rest) (dap-hydra)))
+    (dap-terminated . (lambda (&_rest) (dap-hydra/nil)))))
+
 
 ;;---===>>><<<===---
 ;;       Java
@@ -420,7 +555,7 @@ This command does not push erased text to kill-ring."
 
 ;; language server : jdtls
 (use-package lsp-java)
-(require 'dap-java)
+(use-package dap-java :ensure nil)
 (add-hook 'java-mode-hook #'lsp)
 
 ;; Gradle support
@@ -434,9 +569,23 @@ This command does not push erased text to kill-ring."
 ;;      Python
 ;;---===>>><<<===---
 
-(use-package elpy)
+(use-package elpy
+  :bind (
+         ("C-M-<up>" . elpy-nav-move-line-or-region-up)
+         ("C-M-<down>" . elpy-nav-move-line-or-region-down)
+         ("C-M-<left>" . elpy-nave-indent-shift-left)
+         ("C-M-<right>" . elpy-nave-indent-shift-right))
+  )
+(general-unbind
+  :keymaps 'elpy-mode-map
+  "M-<up>"
+  "M-<down>"
+  "M-<left>"
+  "M-<right>")
+
 (setq elpy-rpc-backend "jedi")
-(add-hook 'python-mode 'elpy-enable)
+(elpy-enable)
+
 
 ;;---===>>><<<===---
 ;;        C
@@ -446,6 +595,27 @@ This command does not push erased text to kill-ring."
 (use-package ccls
   :hook ((c-mode c++-mode objc-mode cuda-mode) .
          (lambda () (require 'ccls) (lsp))))
+
+;;---===>>><<<===---
+;;       JSON
+;;---===>>><<<===---
+
+(use-package json-mode
+  :ensure t
+  :config
+  (add-to-list 'auto-mode-alist '("\\.json\\'" . json-mode)))
+
+
+;;---===>>><<<===---
+;;      LaTeX
+;;---===>>><<<===---
+
+(use-package pdf-tools
+  :ensure t
+  :config
+  (pdf-tools-install))
+
+
 
 ;;---===>>><<<===---
 ;;    Keybindings
@@ -462,6 +632,21 @@ This command does not push erased text to kill-ring."
 
 ;;#########################
 ;;                        #
+;;        ORG-MODE        #
+;;                        #
+;;#########################
+
+;; What we want to be executed when an org buffer is started
+(defun vs/org-mode-setup ()
+  (org-indent-mode)
+  )
+
+(use-package org
+  :config(setq org-ellipsis " »"))
+
+
+;;#########################
+;;                        #
 ;;      MISCELLANEOUS     #
 ;;                        #
 ;;#########################
@@ -473,3 +658,4 @@ This command does not push erased text to kill-ring."
 ;; Activity Watch ! To track my emacs time !
 (use-package activity-watch-mode)
 (global-activity-watch-mode)
+
