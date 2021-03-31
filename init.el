@@ -499,7 +499,7 @@ This command does not push erased text to kill-ring."
 
 (lsp-ui-peek-enable t)
 (lsp-ui-doc-enable t)
-(lsp-ui-doc-show-with-cursor t)
+(setq lsp-ui-doc-show-with-cursor t)
 
 (lsp-enable-imenu)
 (setq lsp-ui-imenu-window-width 25)
