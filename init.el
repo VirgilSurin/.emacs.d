@@ -79,7 +79,7 @@
 
 
 ;; Typo - go to https://www.jetbrains.com/lp/mono/#how-to-install to get it !
-(set-face-attribute 'default nil :font "JetBrains Mono-12.0" :height 100)
+(set-face-attribute 'default nil :font "JetBrains Mono-12.0" :height 100) ; "JetBrains Mono-12.0"
 
 ;; enable line highlight, line number and column number
 (global-hl-line-mode t)                ; Enable line number at the left
@@ -346,10 +346,10 @@ This command does not push erased text to kill-ring."
 (use-package doom-themes)
 (use-package monokai-theme)
 (use-package kaolin-themes)
-;; (load-theme 'doom-molokai t)
+(load-theme 'doom-molokai t)
 ;; (load-theme 'doom-one t)
 ;; (load-theme 'spacemacs-dark t)
-(load-theme 'atom-one-dark t)
+;; (load-theme 'atom-one-dark t)
 (setq doom-molokai-brighter-modeline t)
 (setq doom-molokai-brighter-comments t)
 (setq doom-molokai-comment-bg t)
